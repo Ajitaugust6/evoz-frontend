@@ -50,3 +50,6 @@ User List: View, search, and paginate through the database.
 Update: Modify existing user information.
 
 Delete: Remove users from the system permanently.
+
+
+*(Note: Don't forget to replace `YOUR_USERNAME` in the clone links with your actual GitHub username!)*
