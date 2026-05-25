@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Evoz User Management</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+
+    header {
+      background: #1a1a2e; color: white;
+      padding: 16px 32px; font-size: 1.4rem; font-weight: bold;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .tabs {
+      display: flex; gap: 0;
+      background: #16213e; padding: 0 32px;
+    }
+    .tab {
+      padding: 12px 24px; cursor: pointer; color: #aaa;
+      border-bottom: 3px solid transparent; transition: 0.2s;
+    }
+    .tab.active { color: #e94560; border-bottom-color: #e94560; }
+
+    .container { max-width: 960px; margin: 32px auto; padding: 0 16px; }
+
+    .card {
+      background: white; border-radius: 10px;
+      padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+    }
+    .card h2 { margin-bottom: 20px; font-size: 1.1rem; color: #1a1a2e; }
+
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .form-row input {
+      flex: 1; min-width: 180px; padding: 10px 14px;
+      border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem;
+    }
+    .form-row input:focus { outline: none; border-color: #e94560; }
+
+    button {
+      padding: 10px 22px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.95rem; transition: 0.2s;
+    }
+    .btn-primary { background: #e94560; color: white; }
+    .btn-primary:hover { background: #c73652; }
+    .btn-secondary { background: #eee; color: #333; }
+    .btn-secondary:hover { background: #ddd; }
+    .btn-danger { background: #ff4d4d; color: white; }
+    .btn-danger:hover { background: #cc0000; }
+
+    .response-box {
+      margin-top: 14px; padding: 12px 16px;
+      border-radius: 6px; font-size: 0.9rem; display: none;
+    }
+    .response-box.success { background: #e6f9f0; border-left: 4px solid #28a745; color: #1a6b3c; }
+    .response-box.error   { background: #fde8e8; border-left: 4px solid #dc3545; color: #7b1e1e; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { background: #1a1a2e; color: white; padding: 10px 14px; text-align: left; }
+    td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+    tr:hover td { background: #fafafa; }
+
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 20px;
+      font-size: 0.78rem; background: #e94560; color: white;
+    }
+
+    .pagination { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+    .page-info { font-size: 0.9rem; color: #666; margin-left: auto; }
+
+    .search-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .search-row input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+  </style>
+</head>
+<body>
+
+<header>⚡ Evoz User Management</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showSection('register')">Register</div>
+  <div class="tab" onclick="showSection('login')">Login</div>
+  <div class="tab" onclick="showSection('users')">User List</div>
+  <div class="tab" onclick="showSection('update')">Update</div>
+  <div class="tab" onclick="showSection('delete')">Delete</div>
+</div>
+
+<div class="container">
+
+  <!-- BASE URL CONFIG -->
+  <div class="card" style="padding:16px 28px; display:flex; gap:12px; align-items:center;">
+    <label style="font-size:0.9rem; color:#555; white-space:nowrap;">Backend URL:</label>
+    <input id="baseUrl" type="text" value="http://localhost:8080"
+      style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:6px;" />
+  </div>
+
+  <!-- REGISTER -->
+  <div id="section-register" class="section active">
+    <div class="card">
+      <h2>📋 Register New User</h2>
+      <div class="form-row">
+        <input id="reg-name" placeholder="Full Name" />
+        <input id="reg-username" placeholder="Username" />
+      </div>
+      <div class="form-row">
+        <input id="reg-email" placeholder="Email" type="email" />
+        <input id="reg-password" placeholder="Password" type="password" />
+      </div>
+      <button class="btn-primary" onclick="registerUser()">Register</button>
+      <div id="reg-response" class="response-box"></div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="section-login" class="section">
+    <div class="card">
+      <h2>🔐 Login</h2>
+      <div class="form-row">
+        <input id="login-email" placeholder="Email" type="email" />
+        <input id="login-password" placeholder="Password" type="password" />
+      </div>
+      <button class="btn-primary" onclick="loginUser()">Login</button>
+      <div id="login-response" class="response-box"></div>
+    </div>
+  </div>
+
+  <!-- USER LIST -->
+  <div id="section-users" class="section">
+    <div class="card">
+      <h2>👥 User List</h2>
+      <div class="search-row">
+        <input id="search-kw" placeholder="Search by keyword..." />
+        <button class="btn-secondary" onclick="loadUsers(0)">🔍 Search</button>
+        <button class="btn-primary" onclick="clearSearch()">All Users</button>
+      </div>
+      <table id="user-table">
+        <thead><tr><th>Name</th><th>Username</th><th>Email</th></tr></thead>
+        <tbody id="user-tbody"><tr><td colspan="3" style="text-align:center;color:#aaa;">Click a button to load users</td></tr></tbody>
+      </table>
+      <div class="pagination">
+        <button class="btn-secondary" id="prev-btn" onclick="changePage(-1)" disabled>← Prev</button>
+        <button class="btn-secondary" id="next-btn" onclick="changePage(1)">Next →</button>
+        <span class="page-info" id="page-info"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPDATE -->
+  <div id="section-update" class="section">
+    <div class="card">
+      <h2>✏️ Update User</h2>
+      <div class="form-row">
+        <input id="upd-email" placeholder="Current Email (identifier)" />
+      </div>
+      <div class="form-row">
+        <input id="upd-new-email" placeholder="New Email (optional)" />
+        <input id="upd-name" placeholder="New Name (optional)" />
+        <input id="upd-username" placeholder="New Username (optional)" />
+      </div>
+      <button class="btn-primary" onclick="updateUser()">Update</button>
+      <div id="upd-response" class="response-box"></div>
+    </div>
+  </div>
+
+  <!-- DELETE -->
+  <div id="section-delete" class="section">
+    <div class="card">
+      <h2>🗑️ Delete User</h2>
+      <div class="form-row">
+        <input id="del-email" placeholder="Email of user to delete" type="email" />
+      </div>
+      <button class="btn-danger" onclick="deleteUser()">Delete User</button>
+      <div id="del-response" class="response-box"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const BASE = () => document.getElementById('baseUrl').value.replace(/\/$/, '');
+  let currentPage = 0;
+  const PAGE_SIZE = 10;
+
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    event.target.classList.add('active');
+    if (name === 'users') loadUsers(0);
+  }
+
+  function showResponse(id, msg, isError) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'response-box ' + (isError ? 'error' : 'success');
+    el.style.display = 'block';
+  }
+
+  async function registerUser() {
+    const body = {
+      name: document.getElementById('reg-name').value,
+      username: document.getElementById('reg-username').value,
+      email: document.getElementById('reg-email').value,
+      password: document.getElementById('reg-password').value
+    };
+    try {
+      const res = await fetch(`${BASE()}/evoz/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const text = await res.text();
+      showResponse('reg-response', text, !res.ok);
+    } catch(e) { showResponse('reg-response', 'Connection failed: ' + e.message, true); }
+  }
+
+  async function loginUser() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+      const res = await fetch(`${BASE()}/evoz/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+      const text = await res.text();
+      showResponse('login-response', text, !res.ok);
+    } catch(e) { showResponse('login-response', 'Connection failed: ' + e.message, true); }
+  }
+
+  async function loadUsers(page) {
+    currentPage = page;
+    const kw = document.getElementById('search-kw').value.trim();
+    const url = kw
+      ? `${BASE()}/evoz/search/listusers?keyword=${encodeURIComponent(kw)}&pageNo=${page}`
+      : `${BASE()}/evoz/listusers?pageNo=${page}`;
+    try {
+      const res = await fetch(url);
+      const users = await res.json();
+      const tbody = document.getElementById('user-tbody');
+      if (!users.length) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">No users found</td></tr>`;
+      } else {
+        tbody.innerHTML = users.map(u => `
+          <tr>
+            <td>${u.name || '-'}</td>
+            <td><span class="badge">${u.username || '-'}</span></td>
+            <td>${u.email || '-'}</td>
+          </tr>`).join('');
+      }
+      // Count for pagination
+      const countUrl = kw
+        ? `${BASE()}/evoz/search/listcount?keyword=${encodeURIComponent(kw)}`
+        : `${BASE()}/evoz/listcount`;
+      const countRes = await fetch(countUrl);
+      const total = await countRes.json();
+      document.getElementById('page-info').textContent = `Page ${page + 1} · ${total} total`;
+      document.getElementById('prev-btn').disabled = page === 0;
+      document.getElementById('next-btn').disabled = (page + 1) * PAGE_SIZE >= total;
+    } catch(e) {
+      document.getElementById('user-tbody').innerHTML =
+        `<tr><td colspan="3" style="color:red;">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  function changePage(dir) { loadUsers(currentPage + dir); }
+
+  function clearSearch() {
+    document.getElementById('search-kw').value = '';
+    loadUsers(0);
+  }
+
+  async function updateUser() {
+    const email = document.getElementById('upd-email').value;
+    const params = new URLSearchParams();
+    const ne = document.getElementById('upd-new-email').value;
+    const nn = document.getElementById('upd-name').value;
+    const nu = document.getElementById('upd-username').value;
+    if (ne) params.append('emailid', ne);
+    if (nn) params.append('name', nn);
+    if (nu) params.append('username', nu);
+    try {
+      const res = await fetch(`${BASE()}/evoz/update/${encodeURIComponent(email)}?${params}`, { method: 'PUT' });
+      const text = await res.text();
+      showResponse('upd-response', text, !res.ok);
+    } catch(e) { showResponse('upd-response', 'Connection failed: ' + e.message, true); }
+  }
+
+  async function deleteUser() {
+    const email = document.getElementById('del-email').value;
+    if (!confirm(`Delete user: ${email}?`)) return;
+    try {
+      const res = await fetch(`${BASE()}/evoz/delete/${encodeURIComponent(email)}`, { method: 'DELETE' });
+      const text = await res.text();
+      showResponse('del-response', text, !res.ok);
+    } catch(e) { showResponse('del-response', 'Connection failed: ' + e.message, true); }
+  }
+</script>
+</body>
+</html>
